@@ -45,7 +45,7 @@
             bottom: 20px;
             width: 50px;
             height: 50px;
-            animation: move 3s linear infinite; /* Duración ajustada */
+            animation: move 1.5s linear infinite; /* Velocidad incrementada */
             background-size: cover;
             background-repeat: no-repeat;
         }
@@ -99,7 +99,7 @@
     </style>
 </head>
 <body>
-    <img id="logo" src="Concepto.png" alt="Logo de Concepto"> <!-- Logo fuera de la caja -->
+    <img id="Concepto" src="Concepto.png" alt="Concepto"> <!-- Logo fuera de la caja -->
     <div id="game-container">
         <div id="game">
             <div id="ground"></div>
@@ -156,7 +156,7 @@
                     if (obstacle.parentElement) {
                         game.removeChild(obstacle);
                     }
-                }, 3000); // Duración ajustada de movimiento del obstáculo
+                }, 1500); // Duración ajustada de movimiento del obstáculo
             }, 2000);
         }
 
