@@ -108,8 +108,8 @@
         backgroundMusic.volume = 0.1; // Volumen ajustado de la música de fondo al 10%
         backgroundMusic.play();
 
-        document.addEventListener("keydown", function(event) {
-            if (event.code === "Space" && !jump) {
+        function jumpAction() {
+            if (!jump) {
                 jump = true;
                 jumpSound.play().catch(error => {console.log('Error reproduciendo sonido de salto: ', error)});
                 conceptin.classList.add("jump");
@@ -118,6 +118,16 @@
                     jump = false;
                 }, 600); // Duración del salto ajustada
             }
+        }
+
+        document.addEventListener("keydown", function(event) {
+            if (event.code === "Space") {
+                jumpAction();
+            }
+        });
+
+        document.addEventListener("touchstart", function() {
+            jumpAction();
         });
 
         setInterval(() => {
