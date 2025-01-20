@@ -45,7 +45,7 @@
             bottom: 20px;
             width: 50px;
             height: 50px;
-            animation: move 3s linear infinite;
+            animation: move 2s linear infinite;
             background-size: cover;
             background-repeat: no-repeat;
         }
@@ -54,11 +54,11 @@
             100% { right: 100%; }
         }
         .jump {
-            animation: jump 0.6s ease-out;
+            animation: jump 0.4s ease-out;
         }
         @keyframes jump {
             0% { bottom: 20px; }
-            50% { bottom: 150px; } /* Salto incrementado */
+            50% { bottom: 160px; } /* Salto incrementado */
             100% { bottom: 20px; }
         }
         #score {
@@ -77,6 +77,25 @@
             height: auto;
             z-index: 10; /* Asegura que el logo esté por encima de todo */
         }
+        #game-over-menu {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #FFFFFF;
+            border: 2px solid #000000;
+            padding: 20px;
+            text-align: center;
+            z-index: 20;
+        }
+        #game-over-menu h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        #game-over-menu p {
+            margin: 5px 0;
+        }
     </style>
 </head>
 <body>
@@ -86,6 +105,13 @@
             <div id="ground"></div>
             <img id="conceptin" src="conceptin.png" alt="Conceptin">
             <div id="score">Puntos: 0</div>
+            <div id="game-over-menu">
+                <h2>¡Game Over!</h2>
+                <p>Tu puntuación: <span id="final-score"></span></p>
+                <p>Mejores puntuaciones:</p>
+                <ol id="high-scores"></ol>
+                <button onclick="playAgain()">Jugar otra vez</button>
+            </div>
         </div>
     </div>
 
@@ -100,13 +126,39 @@
         let jumpSound = document.getElementById("jump-sound");
         let gameoverSound = document.getElementById("gameover-sound");
         let backgroundMusic = document.getElementById("background-music");
+        let gameOverMenu = document.getElementById("game-over-menu");
+        let finalScoreElem = document.getElementById("final-score");
+        let highScoresElem = document.getElementById("high-scores");
         let jump = false;
         let score = 0;
+        let gameInterval;
+        let obstacleInterval;
 
         const obstacles = ['carne.png', 'obstacle.png', 'tomate.png', 'sandwich.png'];
 
         backgroundMusic.volume = 0.1; // Volumen ajustado de la música de fondo al 10%
         backgroundMusic.play();
+
+        function startGame() {
+            gameInterval = setInterval(() => {
+                score++;
+                scoreElem.textContent = `Puntos: ${score}`;
+            }, 1000);
+
+            obstacleInterval = setInterval(() => {
+                let obstacle = document.createElement("div");
+                obstacle.classList.add("obstacle");
+                let randomObstacle = obstacles[Math.floor(Math.random() * obstacles.length)];
+                obstacle.style.backgroundImage = `url('${randomObstacle}')`;
+                game.appendChild(obstacle);
+
+                setTimeout(() => {
+                    if (obstacle.parentElement) {
+                        game.removeChild(obstacle);
+                    }
+                }, 2000); // Duración ajustada de movimiento del obstáculo
+            }, 2000);
+        }
 
         function jumpAction() {
             if (!jump) {
@@ -116,7 +168,7 @@
                 setTimeout(() => {
                     conceptin.classList.remove("jump");
                     jump = false;
-                }, 600); // Duración del salto ajustada
+                }, 400); // Duración del salto ajustada
             }
         }
 
@@ -130,19 +182,7 @@
             jumpAction();
         });
 
-        setInterval(() => {
-            let obstacle = document.createElement("div");
-            obstacle.classList.add("obstacle");
-            let randomObstacle = obstacles[Math.floor(Math.random() * obstacles.length)];
-            obstacle.style.backgroundImage = `url('${randomObstacle}')`;
-            game.appendChild(obstacle);
-
-            setTimeout(() => {
-                game.removeChild(obstacle);
-            }, 3000); // Duración ajustada de movimiento del obstáculo
-        }, 2000);
-
-        setInterval(() => {
+        gameInterval = setInterval(() => {
             let obstacles = document.querySelectorAll(".obstacle");
             obstacles.forEach(obstacle => {
                 let conceptinRect = conceptin.getBoundingClientRect();
@@ -156,17 +196,38 @@
                 ) {
                     gameoverSound.play().catch(error => {console.log('Error reproduciendo sonido de game over: ', error)});
                     setTimeout(() => {
-                        alert("¡Game Over!");
-                        location.reload();
+                        gameOver(score);
                     }, 100);
                 }
             });
         }, 50);
 
-        setInterval(() => {
-            score++;
-            scoreElem.textContent = `Puntos: ${score}`;
-        }, 1000);
+        function gameOver(finalScore) {
+            clearInterval(gameInterval);
+            clearInterval(obstacleInterval);
+            backgroundMusic.pause();
+            finalScoreElem.textContent = finalScore;
+            updateHighScores(finalScore);
+            gameOverMenu.style.display = 'block';
+        }
+
+        function updateHighScores(finalScore) {
+            let highScores = JSON.parse(localStorage.getItem('highScores')) || [];
+            highScores.push(finalScore);
+            highScores.sort((a, b) => b - a);
+            highScores = highScores.slice(0, 3);
+            localStorage.setItem('highScores', JSON.stringify(highScores));
+
+            highScoresElem.innerHTML = highScores.map(score => `<li>${score}</li>`).join('');
+        }
+
+        function playAgain() {
+            gameOverMenu.style.display = 'none';
+            location.reload();
+        }
+
+        startGame();
     </script>
 </body>
 </html>
+
