@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conceptin Game</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #FFFFFF;
+            font-family: 'Helvetica', sans-serif;
+        }
+        #game-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 90vh; /* Ajustado para dejar espacio al logo */
+            background-color: #F6C102;
+            position: relative;
+        }
+        #game {
+            position: relative;
+            width: 80%;
+            height: 80%;
+            background-color: #FFFFFF;
+            border: 2px solid #000000;
+            overflow: hidden;
+        }
+        #ground {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 10px;
+            background-color: #000000;
+        }
+        #conceptin {
+            position: absolute;
+            bottom: 20px;
+            left: 50px;
+            width: 60px;  /* Tamaño incrementado en 20% */
+            height: 60px; /* Tamaño incrementado en 20% */
+        }
+        .obstacle {
+            position: absolute;
+            bottom: 20px;
+            width: 50px;
+            height: 50px;
+            animation: move 3s linear infinite;
+            background-size: cover;
+            background-repeat: no-repeat;
+        }
+        @keyframes move {
+            0% { right: -50px; }
+            100% { right: 100%; }
+        }
+        .jump {
+            animation: jump 0.6s ease-out;
+        }
+        @keyframes jump {
+            0% { bottom: 20px; }
+            50% { bottom: 150px; } /* Salto incrementado */
+            100% { bottom: 20px; }
+        }
+        #score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 24px;
+            color: #000000;
+        }
+        #logo {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px; /* Tamaño incrementado en 50% */
+            height: auto;
+            z-index: 10; /* Asegura que el logo esté por encima de todo */
+        }
+    </style>
+</head>
+<body>
+    <img id="logo" src="Concepto.png" alt="Logo de Concepto"> <!-- Logo fuera de la caja -->
+    <div id="game-container">
+        <div id="game">
+            <div id="ground"></div>
+            <img id="conceptin" src="conceptin.png" alt="Conceptin">
+            <div id="score">Puntos: 0</div>
+        </div>
+    </div>
+
+    <audio id="jump-sound" src="jump.mp3"></audio>
+    <audio id="gameover-sound" src="gameover.mp3"></audio>
+    <audio id="background-music" src="background.mp3" loop></audio>
+
+    <script>
+        let conceptin = document.getElementById("conceptin");
+        let game = document.getElementById("game");
+        let scoreElem = document.getElementById("score");
+        let jumpSound = document.getElementById("jump-sound");
+        let gameoverSound = document.getElementById("gameover-sound");
+        let backgroundMusic = document.getElementById("background-music");
+        let jump = false;
+        let score = 0;
+
+        const obstacles = ['carne.png', 'obstacle.png', 'tomate.png', 'sandwich.png'];
+
+        backgroundMusic.volume = 0.1; // Volumen ajustado de la música de fondo al 10%
+        backgroundMusic.play();
+
+        document.addEventListener("keydown", function(event) {
+            if (event.code === "Space" && !jump) {
+                jump = true;
+                jumpSound.play().catch(error => {console.log('Error reproduciendo sonido de salto: ', error)});
+                conceptin.classList.add("jump");
+                setTimeout(() => {
+                    conceptin.classList.remove("jump");
+                    jump = false;
+                }, 600); // Duración del salto ajustada
+            }
+        });
+
+        setInterval(() => {
+            let obstacle = document.createElement("div");
+            obstacle.classList.add("obstacle");
+            let randomObstacle = obstacles[Math.floor(Math.random() * obstacles.length)];
+            obstacle.style.backgroundImage = `url('${randomObstacle}')`;
+            game.appendChild(obstacle);
+
+            setTimeout(() => {
+                game.removeChild(obstacle);
+            }, 3000); // Duración ajustada de movimiento del obstáculo
+        }, 2000);
+
+        setInterval(() => {
+            let obstacles = document.querySelectorAll(".obstacle");
+            obstacles.forEach(obstacle => {
+                let conceptinRect = conceptin.getBoundingClientRect();
+                let obstacleRect = obstacle.getBoundingClientRect();
+
+                if (
+                    conceptinRect.x < obstacleRect.x + obstacleRect.width &&
+                    conceptinRect.x + conceptinRect.width > obstacleRect.x &&
+                    conceptinRect.y < obstacleRect.y + obstacleRect.height &&
+                    conceptinRect.y + conceptinRect.height > obstacleRect.y
+                ) {
+                    gameoverSound.play().catch(error => {console.log('Error reproduciendo sonido de game over: ', error)});
+                    setTimeout(() => {
+                        alert("¡Game Over!");
+                        location.reload();
+                    }, 100);
+                }
+            });
+        }, 50);
+
+        setInterval(() => {
+            score++;
+            scoreElem.textContent = `Puntos: ${score}`;
+        }, 1000);
+    </script>
+</body>
+</html>
